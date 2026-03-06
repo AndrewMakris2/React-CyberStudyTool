@@ -1,4 +1,4 @@
-export function buildSummaryPrompt(certLabel: string, domainScores: string): string {
+export function buildSummaryPrompt(_certLabel: string, domainScores: string): string {
   return `
 You are a cybersecurity exam coach reviewing a student's practice exam results.
 

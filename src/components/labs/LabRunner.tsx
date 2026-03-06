@@ -6,7 +6,6 @@ import { Button } from '../ui/Button'
 import { TextArea } from '../ui/TextArea'
 import { Alert } from '../ui/Alert'
 import { Badge } from '../ui/Badge'
-import { cn } from '../../utils/cn'
 
 interface LabRunnerProps {
   lab: Lab

@@ -1,11 +1,11 @@
-import { Trophy, Target, TrendingDown, BookOpen } from 'lucide-react'
+import { Target, TrendingDown, BookOpen } from 'lucide-react'
 import type { ExamScore, PracticeQuestion } from '../../types'
 import { Card, CardHeader, CardTitle } from '../ui/Card'
 import { Badge } from '../ui/Badge'
 import { Progress } from '../ui/Progress'
 import { Button } from '../ui/Button'
 import {
-  RadialBarChart, RadialBar, ResponsiveContainer,
+  ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip, Cell
 } from 'recharts'
 
@@ -18,7 +18,7 @@ interface ScoreReportProps {
   onDone: () => void
 }
 
-export default function ScoreReport({ score, questions, answers, onRetry, onReview, onDone }: ScoreReportProps) {
+export default function ScoreReport({ score, onRetry, onReview, onDone }: ScoreReportProps) {
   const passed = score.percentage >= 75
   const timeTaken = `${Math.floor(score.timeTakenSeconds / 60)}m ${score.timeTakenSeconds % 60}s`
 

@@ -1,6 +1,5 @@
 import { CheckCircle, XCircle } from 'lucide-react'
 import type { PracticeQuestion } from '../../types'
-import { Alert } from '../ui/Alert'
 import { Badge } from '../ui/Badge'
 
 interface AnswerExplanationProps {
@@ -9,7 +8,7 @@ interface AnswerExplanationProps {
   isCorrect: boolean
 }
 
-export default function AnswerExplanation({ question, selectedAnswers, isCorrect }: AnswerExplanationProps) {
+export default function AnswerExplanation({ question, isCorrect }: AnswerExplanationProps) {
   return (
     <div className="flex flex-col gap-4 animate-fade-in">
       {/* Result banner */}

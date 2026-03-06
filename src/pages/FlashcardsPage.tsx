@@ -3,14 +3,13 @@ import { Plus } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import {
   getDecks, createDeck, deleteDeck, getFlashcardsByDeck,
-  getDueFlashcards, updateFlashcard, addFlashcards, getDueCount,
+  updateFlashcard, addFlashcards,
 } from '../db'
 import { calculateNextReview, sortDueCards } from '../utils/spacedRepetition'
 import type { Deck, Flashcard, FlashcardRating, CertId } from '../types'
 import { Button } from '../components/ui/Button'
 import { Modal } from '../components/ui/Modal'
 import { Input } from '../components/ui/Input'
-import { Alert } from '../components/ui/Alert'
 import DeckList from '../components/flashcards/DeckList'
 import FlashcardViewer from '../components/flashcards/FlashcardViewer'
 import FlashcardEditor from '../components/flashcards/FlashcardEditor'

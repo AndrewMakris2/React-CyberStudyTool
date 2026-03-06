@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Download, Plus } from 'lucide-react'
+import { Copy, Plus } from 'lucide-react'
 import type { GeneratedSummary, Flashcard, CertId } from '../../types'
 import { Card, CardHeader, CardTitle } from '../ui/Card'
 import { Badge } from '../ui/Badge'
@@ -14,7 +14,7 @@ interface GeneratedArtifactsProps {
 }
 
 export default function GeneratedArtifacts({
-  summary, pendingFlashcards, onSaveFlashcards, certId
+  summary, pendingFlashcards, onSaveFlashcards
 }: GeneratedArtifactsProps) {
   const [copied, setCopied] = useState(false)
 

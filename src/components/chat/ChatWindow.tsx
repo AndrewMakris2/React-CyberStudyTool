@@ -10,41 +10,37 @@ import { CERTS_DATA } from '../../data/objectives'
 import ChatMessage from './ChatMessage'
 import ChatInput from './ChatInput'
 import ModeSelector from './ModeSelector'
-import { Toggle } from '../ui/Toggle'
-import { Alert } from '../ui/Alert'
-import type { ChatMessage as ChatMessageType } from '../../types'
 
 export default function ChatWindow() {
-  const activeCertId = useAppStore(s => s.activeCertId)
+  const activeCertId   = useAppStore(s => s.activeCertId)
   const activeDomainId = useAppStore(s => s.activeDomainId)
-  const tutorMode = useAppStore(s => s.tutorMode)
-  const setTutorMode = useAppStore(s => s.setTutorMode)
-  const tutorToggles = useAppStore(s => s.tutorToggles)
+  const tutorMode      = useAppStore(s => s.tutorMode)
+  const setTutorMode   = useAppStore(s => s.setTutorMode)
+  const tutorToggles   = useAppStore(s => s.tutorToggles)
   const setTutorToggle = useAppStore(s => s.setTutorToggle)
-  const chatMessages = useAppStore(s => s.chatMessages)
+  const chatMessages   = useAppStore(s => s.chatMessages)
   const addChatMessage = useAppStore(s => s.addChatMessage)
-  const clearChat = useAppStore(s => s.clearChat)
-  const setChatStreaming = useAppStore(s => s.setChatStreaming)
-  const groqApiKey = useSettingsStore(s => s.groqApiKey)
+  const clearChat      = useAppStore(s => s.clearChat)
+  const setChatStreaming= useAppStore(s => s.setChatStreaming)
+  const groqApiKey     = useSettingsStore(s => s.groqApiKey)
 
   const [streamingContent, setStreamingContent] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
+  const [isStreaming, setIsStreaming]             = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const cert = CERTS_DATA.find(c => c.id === activeCertId)
+  const cert   = CERTS_DATA.find(c => c.id === activeCertId)
   const domain = cert?.domains.find(d => d.id === activeDomainId)
 
   const { send, loading, error, abort } = useGroq({
-    onChunk: (chunk) => setStreamingContent(prev => prev + chunk),
-    onComplete: (full) => {
-      const msg: ChatMessageType = {
+    onChunk: chunk => setStreamingContent(prev => prev + chunk),
+    onComplete: full => {
+      addChatMessage({
         id: crypto.randomUUID(),
         role: 'assistant',
         content: full,
         timestamp: new Date(),
         mode: tutorMode,
-      }
-      addChatMessage(msg)
+      })
       setStreamingContent('')
       setIsStreaming(false)
       setChatStreaming(false)
@@ -61,23 +57,20 @@ export default function ChatWindow() {
   }, [chatMessages, streamingContent])
 
   const handleSend = async (userText: string) => {
-    const userMsg: ChatMessageType = {
+    addChatMessage({
       id: crypto.randomUUID(),
       role: 'user',
       content: userText,
       timestamp: new Date(),
-    }
-    addChatMessage(userMsg)
+    })
     setIsStreaming(true)
     setChatStreaming(true)
     setStreamingContent('')
 
     const knowledgeItems = await getKnowledgeItems(activeCertId)
     const context = retrieveRelevantContext(userText, knowledgeItems)
-
     const systemPrompt = buildTutorSystemPrompt(tutorMode, activeCertId, domain?.name ?? null, tutorToggles)
-    const userPrompt = buildTutorUserPrompt(userText, context || null)
-
+    const userPrompt   = buildTutorUserPrompt(userText, context || null)
     const history = chatMessages.slice(-10).map(m => ({
       role: m.role as 'user' | 'assistant' | 'system',
       content: m.content,
@@ -102,8 +95,8 @@ export default function ChatWindow() {
       .map(m => `[${m.role.toUpperCase()}] ${m.content}`)
       .join('\n\n---\n\n')
     const blob = new Blob([text], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
     a.href = url
     a.download = `chat-export-${Date.now()}.txt`
     a.click()
@@ -111,33 +104,53 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 rounded-xl border border-gray-700 overflow-hidden">
-      {/* Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-gray-700 bg-gray-800">
-        <div className="flex items-center justify-between mb-3">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '18px',
+      overflow: 'hidden',
+      boxShadow: '0 24px 64px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+    }}>
+
+      {/* ── Header ── */}
+      <div style={{
+        flexShrink: 0,
+        padding: '16px 18px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.02)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+      }}>
+        {/* Title row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 className="text-sm font-semibold text-white">AI Tutor</h2>
-            <p className="text-xs text-gray-400">
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#e0e0e0', margin: 0 }}>
+              AI Tutor
+            </p>
+            <p style={{ fontSize: '11px', color: '#444', margin: '2px 0 0' }}>
               {cert?.name}{domain ? ` › ${domain.name}` : ''}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <IconBtn
               onClick={handleExport}
               disabled={chatMessages.length === 0}
-              className="text-gray-400 hover:text-white transition-colors disabled:opacity-30"
               title="Export chat"
             >
-              <Download size={16} />
-            </button>
-            <button
+              <Download size={15} />
+            </IconBtn>
+            <IconBtn
               onClick={clearChat}
               disabled={chatMessages.length === 0}
-              className="text-gray-400 hover:text-red-400 transition-colors disabled:opacity-30"
               title="Clear chat"
+              danger
             >
-              <Trash2 size={16} />
-            </button>
+              <Trash2 size={15} />
+            </IconBtn>
           </div>
         </div>
 
@@ -145,15 +158,13 @@ export default function ChatWindow() {
         <ModeSelector mode={tutorMode} onChange={setTutorMode} />
 
         {/* Toggles */}
-        <div className="flex gap-4 mt-3">
-          <Toggle
-            size="sm"
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <InlineToggle
             checked={tutorToggles.showSteps}
             onChange={v => setTutorToggle('showSteps', v)}
             label="Show Steps"
           />
-          <Toggle
-            size="sm"
+          <InlineToggle
             checked={tutorToggles.citeSources}
             onChange={v => setTutorToggle('citeSources', v)}
             label="Cite Sources"
@@ -161,21 +172,58 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
+      {/* ── Messages ── */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+      }}>
+        {/* No API key */}
         {!groqApiKey && (
-          <Alert variant="warning" title="No API Key">
-            Add your Groq API key in Settings to start chatting.
-          </Alert>
+          <div style={{
+            padding: '14px 16px',
+            borderRadius: '12px',
+            background: 'rgba(161,98,7,0.08)',
+            border: '1px solid rgba(161,98,7,0.2)',
+            fontSize: '13px',
+            color: '#92400e',
+          }}>
+            ⚠️ Add your Groq API key in Settings to start chatting.
+          </div>
         )}
 
+        {/* Empty state */}
         {chatMessages.length === 0 && groqApiKey && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
-            <div className="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center mb-4">
-              <span className="text-3xl">🤖</span>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '48px 0',
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '26px',
+              marginBottom: '16px',
+            }}>
+              🤖
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Start a conversation</h3>
-            <p className="text-gray-400 text-sm max-w-sm">
+            <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#e0e0e0', margin: '0 0 8px' }}>
+              Start a conversation
+            </h3>
+            <p style={{ fontSize: '13px', color: '#444', maxWidth: '320px', lineHeight: 1.6, margin: 0 }}>
               Ask me anything about {cert?.name}. I'll adapt to your chosen mode: {tutorMode}.
             </p>
           </div>
@@ -197,32 +245,67 @@ export default function ChatWindow() {
           />
         )}
 
-        {/* Streaming indicator */}
+        {/* Typing dots */}
         {isStreaming && !streamingContent && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs">🤖</span>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+            <div style={{
+              width: '30px',
+              height: '30px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              flexShrink: 0,
+            }}>
+              🤖
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-2xl rounded-tl-sm px-4 py-3">
-              <div className="flex gap-1">
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                ))}
-              </div>
+            <div style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '16px 16px 16px 4px',
+              padding: '12px 16px',
+              display: 'flex',
+              gap: '5px',
+              alignItems: 'center',
+            }}>
+              {[0, 1, 2].map(i => (
+                <div
+                  key={i}
+                  style={{
+                    width: '7px',
+                    height: '7px',
+                    borderRadius: '50%',
+                    background: '#555',
+                    animation: 'bounce 1.2s ease-in-out infinite',
+                    animationDelay: `${i * 0.18}s`,
+                  }}
+                />
+              ))}
             </div>
           </div>
         )}
 
+        {/* Error */}
         {error && (
-          <Alert variant="danger" title="Error">
-            {error}
-          </Alert>
+          <div style={{
+            padding: '12px 16px',
+            borderRadius: '10px',
+            background: 'rgba(185,28,28,0.1)',
+            border: '1px solid rgba(185,28,28,0.25)',
+            fontSize: '13px',
+            color: '#f87171',
+          }}>
+            ⚠️ {error}
+          </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* ── Input ── */}
       <ChatInput
         onSend={handleSend}
         onAbort={handleAbort}
@@ -230,5 +313,97 @@ export default function ChatWindow() {
         disabled={!groqApiKey}
       />
     </div>
+  )
+}
+
+// ── Small icon button ────────────────────────────────────────────────────────
+function IconBtn({
+  onClick, disabled, title, danger, children,
+}: {
+  onClick: () => void
+  disabled?: boolean
+  title?: string
+  danger?: boolean
+  children: React.ReactNode
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        border: 'none',
+        padding: '6px',
+        borderRadius: '7px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        color: disabled
+          ? '#2a2a2a'
+          : hovered
+          ? danger ? '#f87171' : '#e0e0e0'
+          : '#3a3a3a',
+        transition: 'color 0.15s, background 0.15s',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: hovered && !disabled
+          ? danger ? 'rgba(185,28,28,0.12)' : 'rgba(255,255,255,0.06)'
+          : 'transparent',
+      } as React.CSSProperties}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ── Inline toggle (replaces Toggle component) ────────────────────────────────
+function InlineToggle({
+  checked, onChange, label,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  label: string
+}) {
+  return (
+    <label style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      cursor: 'pointer',
+    }}>
+      <div
+        onClick={() => onChange(!checked)}
+        style={{
+          position: 'relative',
+          width: '36px',
+          height: '20px',
+          borderRadius: '999px',
+          background: checked ? '#7e22ce' : 'rgba(255,255,255,0.08)',
+          border: `1px solid ${checked ? '#7e22ce' : 'rgba(255,255,255,0.12)'}`,
+          transition: 'all 0.2s',
+          cursor: 'pointer',
+          flexShrink: 0,
+          boxShadow: checked ? '0 0 10px rgba(126,34,206,0.35)' : 'none',
+        }}
+      >
+        <div style={{
+          position: 'absolute',
+          top: '2px',
+          left: checked ? '17px' : '2px',
+          width: '14px',
+          height: '14px',
+          borderRadius: '50%',
+          background: '#fff',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+          transition: 'left 0.2s cubic-bezier(0.4,0,0.2,1)',
+        }} />
+      </div>
+      <span style={{ fontSize: '12px', color: checked ? '#c084fc' : '#555', transition: 'color 0.15s' }}>
+        {label}
+      </span>
+    </label>
   )
 }

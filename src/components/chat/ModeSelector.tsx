@@ -1,54 +1,86 @@
+import { useState } from 'react'
 import { Brain, BookOpen, Trophy } from 'lucide-react'
 import type { TutorMode } from '../../types'
-import { cn } from '../../utils/cn'
 
 interface ModeSelectorProps {
   mode: TutorMode
   onChange: (mode: TutorMode) => void
 }
 
-const MODES: { value: TutorMode; label: string; description: string; icon: React.ReactNode; color: string }[] = [
+const MODES = [
   {
-    value: 'explain',
+    value: 'explain' as TutorMode,
     label: 'Explain',
-    description: 'Clear teaching with examples',
-    icon: <BookOpen size={16} />,
-    color: 'text-blue-400 border-blue-600/50 bg-blue-900/20',
+    icon: <BookOpen size={14} />,
+    color: '#60a5fa',
+    bg: 'rgba(37,99,235,0.15)',
+    bgHover: 'rgba(37,99,235,0.22)',
+    border: 'rgba(37,99,235,0.4)',
   },
   {
-    value: 'socratic',
+    value: 'socratic' as TutorMode,
     label: 'Socratic',
-    description: 'Guided discovery through questions',
-    icon: <Brain size={16} />,
-    color: 'text-purple-400 border-purple-600/50 bg-purple-900/20',
+    icon: <Brain size={14} />,
+    color: '#c084fc',
+    bg: 'rgba(126,34,206,0.15)',
+    bgHover: 'rgba(126,34,206,0.22)',
+    border: 'rgba(126,34,206,0.45)',
   },
   {
-    value: 'exam-coach',
+    value: 'exam-coach' as TutorMode,
     label: 'Exam Coach',
-    description: 'Exam traps & test strategy',
-    icon: <Trophy size={16} />,
-    color: 'text-yellow-400 border-yellow-600/50 bg-yellow-900/20',
+    icon: <Trophy size={14} />,
+    color: '#fbbf24',
+    bg: 'rgba(161,98,7,0.15)',
+    bgHover: 'rgba(161,98,7,0.22)',
+    border: 'rgba(161,98,7,0.4)',
   },
 ]
 
 export default function ModeSelector({ mode, onChange }: ModeSelectorProps) {
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
       {MODES.map(m => (
-        <button
-          key={m.value}
-          onClick={() => onChange(m.value)}
-          className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
-            mode === m.value
-              ? m.color + ' border-opacity-100'
-              : 'text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-200'
-          )}
-        >
-          {m.icon}
-          {m.label}
-        </button>
+        <ModeBtn key={m.value} m={m} active={mode === m.value} onClick={() => onChange(m.value)} />
       ))}
     </div>
+  )
+}
+
+function ModeBtn({
+  m, active, onClick,
+}: {
+  m: typeof MODES[number]
+  active: boolean
+  onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '6px 12px',
+        borderRadius: '8px',
+        border: `1px solid ${active ? m.border : hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.07)'}`,
+        background: active ? m.bg : hovered ? 'rgba(255,255,255,0.04)' : 'transparent',
+        color: active ? m.color : hovered ? '#bbb' : '#555',
+        fontSize: '12px',
+        fontWeight: 500,
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+        boxShadow: active ? `0 0 12px ${m.bg}` : 'none',
+      }}
+    >
+      <span style={{ color: active ? m.color : hovered ? '#888' : '#444', display: 'flex', alignItems: 'center' }}>
+        {m.icon}
+      </span>
+      {m.label}
+    </button>
   )
 }

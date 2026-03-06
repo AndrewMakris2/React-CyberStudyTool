@@ -89,14 +89,14 @@ export default function DomainAccordion({ domain, progressMap, onStatusChange }:
       {/* ── Objectives list ── */}
       {open && (
         <div>
-          {domain.objectives.map((obj, i) => {
+          {domain.objectives.map((obj) => {
             const status = progressMap[obj.id] ?? 'not-started'
             return (
               <ObjectiveRow
                 key={obj.id}
                 obj={obj}
                 status={status}
-                isLast={i === domain.objectives.length - 1}
+                
                 onCycle={() => cycleStatus(obj.id)}
               />
             )
@@ -111,12 +111,12 @@ export default function DomainAccordion({ domain, progressMap, onStatusChange }:
 function ObjectiveRow({
   obj,
   status,
-  isLast,
+
   onCycle,
 }: {
   obj: { id: string; code: string; title: string; description: string; keywords: string[] }
   status: ObjectiveStatus
-  isLast: boolean
+  
   onCycle: () => void
 }) {
   const [hovered, setHovered] = useState(false)

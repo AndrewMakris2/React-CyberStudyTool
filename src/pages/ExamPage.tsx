@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { useSettingsStore } from '../store/useSettingsStore'
 import { useTimer } from '../hooks/useTimer'
@@ -46,7 +45,7 @@ export default function ExamPage() {
 
   const cert = CERTS_DATA.find(c => c.id === activeCertId)
 
-  const { seconds, formatted, start: startTimer, pause: pauseTimer, reset: resetTimer } = useTimer({
+  const { seconds, start: startTimer, pause: pauseTimer, reset: resetTimer } = useTimer({
     initialSeconds: config.timeLimitMinutes * 60,
     countDown: true,
     onExpire: () => handleFinishExam(true),
